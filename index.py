@@ -16,6 +16,19 @@ from PySide2.QtMultimediaWidgets import *
 # Core elements
 from PySide2.QtCore import *
 from PySide2.QtGui import *
+# Others
+import cv2
+import numpy as np
+
+"""
+    Variables
+"""
+image = ""
+videoEdit = ""
+
+# Function auxiliary for mouse event
+def check(event,x,y,flags,param):
+    global image, videoEdit
 
 """
     Main window class 
@@ -38,7 +51,7 @@ class MainWindow(QWidget):
         # Create the media player container 
         self.mediaPlayer = QMediaPlayer(None, QMediaPlayer.VideoSurface) # (parent, flags)
         self.imageLabel = QLabel()
-        self.imageLabel.setMaximumSize(230, 700)
+        #self.imageLabel.setMaximumSize(230, 700)
 
         # Create the widget for the video 
         videoPlayer = QVideoWidget()
@@ -121,28 +134,54 @@ class MainWindow(QWidget):
     
     # Function to edit the video
     def editVideo(self): 
+        global image, videoEdit
+
+        pause = False
+
+        while(videoEdit.isOpened()):
+            isFrame, frame = videoEdit.read()
+            if isFrame:
+                cv2.imshow('Edit Video',frame)
+                #cv2.setMouseCallback('Edit Video',check)
+                if cv2.waitKey(15) & 0xFF == ord('p'):
+                    pause = True
+                    cv2.waitKey(0)
+                if cv2.waitKey(15) & 0xFF == ord('s'):
+                    pause = False
+                    cv2.waitKey(15)
+                if cv2.waitKey(15) & 0xFF == ord('q'):
+                    break
+            else:
+                break
+
+        videoEdit.release()
+        cv2.destroyAllWindows()
         print("Here you can edit the video")
     # EOF
 
     # Function to open an image file
     def openImage(self): 
+        global image, videoEdit
        # Get the path to the video file
         [pathToFile, x] = QFileDialog.getOpenFileName(self, "Open image") 
         # Save the path to the video 
         self.pathToImageFile = pathToFile
         # Put the image into the label 
         self.imageLabel.setPixmap(QPixmap.fromImage(pathToFile))
-        self.imageLabel.show()
+        image = cv2.imread(pathToFile)
+        #self.imageLabel.show()
     # EOF
 
     # Function to open a video file 
     def openVideo(self):
+        global image, videoEdit
         # Get the path to the video file
         [pathToFile, x] = QFileDialog.getOpenFileName(self, "Open video") 
         # Save the path to the video 
         self.pathToVideoFile = pathToFile
         # Set the video file to the media player
         self.mediaPlayer.setMedia(QMediaContent(QUrl.fromLocalFile(pathToFile)))
+        videoEdit = cv2.VideoCapture(pathToFile)
         # Enable the buttons to control the video
         self.playPauseButton.setEnabled(True)
         self.editVideoButton.setEnabled(True)
