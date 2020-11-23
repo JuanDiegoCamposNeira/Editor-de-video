@@ -19,16 +19,19 @@ from PySide2.QtGui import *
 # Others
 import cv2
 import numpy as np
+import os
+import time
 
 """
-    Variables
+    Global Variables
 """
 image = ""
 videoEdit = ""
+band = False
 
 # Function auxiliary for mouse event
 def check(event,x,y,flags,param):
-    global image, videoEdit
+    global image, videoEdit, band
 
 """
     Main window class 
@@ -51,7 +54,6 @@ class MainWindow(QWidget):
         # Create the media player container 
         self.mediaPlayer = QMediaPlayer(None, QMediaPlayer.VideoSurface) # (parent, flags)
         self.imageLabel = QLabel()
-        #self.imageLabel.setMaximumSize(230, 700)
 
         # Create the widget for the video 
         videoPlayer = QVideoWidget()
@@ -134,47 +136,72 @@ class MainWindow(QWidget):
     
     # Function to edit the video
     def editVideo(self): 
-        global image, videoEdit
+        global image, videoEdit, band
 
+        #Auxiliary variables
         pause = False
+        cont = 0
 
+        #Change route for save the frames to edit
+        directory = r'.\Edits'
+        os.chdir(directory)
+
+        #This cycle is for play video frame to frame and be able to edit frame with an image
         while(videoEdit.isOpened()):
+            #read a frame
             isFrame, frame = videoEdit.read()
+            
             if isFrame:
-                cv2.imshow('Edit Video',frame)
-                #cv2.setMouseCallback('Edit Video',check)
+                cont += 1
+                #Show the current frame in a new window
+                cv2.imshow("Edit Video",frame)
+                #Action for pause the video and edit this frame
                 if cv2.waitKey(15) & 0xFF == ord('p'):
                     pause = True
                     cv2.waitKey(0)
+                    #Save the current frame to convert an image 
+                    cv2.imwrite("frame"+str(cont)+".jpg",frame)
+                    newFrame = cv2.imread("frame"+str(cont)+".jpg")
+                    width = newFrame.shape[1]
+                    height = newFrame.shape[0]
+                    #After of open the frame to edit, open a new window (after play again the video)
+                    if band:
+                        #Note: For edit current frame with an image, before play again the video, click in open image button and select the image
+                        imageScale = cv2.resize(image,(width,height),interpolation=cv2.INTER_CUBIC)
+                        combination = cv2.addWeighted(newFrame,1,imageScale,1,0)
+                        cv2.imshow("Edit Video2",combination)
+                    else:
+                        cv2.imshow("Edit Video2",newFrame)
+                #Action for play the video
                 if cv2.waitKey(15) & 0xFF == ord('s'):
                     pause = False
                     cv2.waitKey(15)
+                #Action for stop the video and close the window
                 if cv2.waitKey(15) & 0xFF == ord('q'):
+                    band = False
                     break
             else:
                 break
-
+        
+        #Close the video and all windows
         videoEdit.release()
         cv2.destroyAllWindows()
-        print("Here you can edit the video")
     # EOF
 
     # Function to open an image file
     def openImage(self): 
-        global image, videoEdit
+        global image, videoEdit, band
        # Get the path to the video file
         [pathToFile, x] = QFileDialog.getOpenFileName(self, "Open image") 
         # Save the path to the video 
         self.pathToImageFile = pathToFile
-        # Put the image into the label 
-        self.imageLabel.setPixmap(QPixmap.fromImage(pathToFile))
         image = cv2.imread(pathToFile)
-        #self.imageLabel.show()
+        band = True
     # EOF
 
     # Function to open a video file 
     def openVideo(self):
-        global image, videoEdit
+        global image, videoEdit, band
         # Get the path to the video file
         [pathToFile, x] = QFileDialog.getOpenFileName(self, "Open video") 
         # Save the path to the video 
