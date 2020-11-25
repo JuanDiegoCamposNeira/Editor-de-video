@@ -276,7 +276,9 @@ class MainWindow(QWidget):
         [pathToFile, x] = QFileDialog.getOpenFileName(self, "Open Audio") 
         source_video_path = os.path.join(SAMPLE_INPUTS, self.pathToVideoFile)
         source_audio_path = os.path.join(SAMPLE_INPUTS, pathToFile)
-        final_video_path = os.path.join(SAMPLE_OUTPUTS, self.pathToVideoFile)
+        new_file_path = self.pathToVideoFile[:self.pathToVideoFile.find('.')] +"edit" +self.pathToVideoFile[self.pathToVideoFile.find('.'):] 
+        print(new_file_path)
+        final_video_path = os.path.join(SAMPLE_OUTPUTS, new_file_path)
 
         video_clip = VideoFileClip(source_video_path)
 
