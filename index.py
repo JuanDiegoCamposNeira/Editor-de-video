@@ -21,6 +21,11 @@ import cv2
 import numpy as np
 import os
 import time
+# To manage the audio things
+from config import SAMPLE_INPUTS, SAMPLE_OUTPUTS
+from moviepy.editor import *
+from moviepy.audio.fx.all import volumex
+from PIL import Image
 
 """
     Global Variables
@@ -78,7 +83,12 @@ class MainWindow(QWidget):
         # Button to edit the video
         self.editVideoButton = QPushButton("Edit video")
         self.editVideoButton.setEnabled(False)
-        self.editVideoButton.clicked.connect(self.editVideo) 
+        self.editVideoButton.clicked.connect(self.editVideo)
+        #Button to add a new audio file
+        self.changeAudioButton = QPushButton("Change audio")
+        self.changeAudioButton.setEnabled(False)
+        self.changeAudioButton.clicked.connect(self.changeAudio)
+        # Button to save the edited video
         # Slider for the video 
         self.videoSlider = QSlider(Qt.Horizontal)
         self.videoSlider.setRange(0,0) 
@@ -99,6 +109,7 @@ class MainWindow(QWidget):
         controlsLayout.addWidget(self.stopButton)
         controlsLayout.addWidget(self.editVideoButton)
         controlsLayout.addWidget(self.videoSlider)
+        controlsLayout.addWidget(self.changeAudioButton)
 
         # Layout to display the video and the image
         mediaLayout = QHBoxLayout()
@@ -213,6 +224,7 @@ class MainWindow(QWidget):
         self.playPauseButton.setEnabled(True)
         self.editVideoButton.setEnabled(True)
         self.stopButton.setEnabled(True)
+        self.changeAudioButton.setEnabled(True)
         # Play and pause the video to show the first frame
         self.mediaPlayer.play()
         self.mediaPlayer.pause()
@@ -232,7 +244,24 @@ class MainWindow(QWidget):
     def stop(self):
         self.onSliderChange(0) 
         # PLay and pause the video to update the slider
-        
+    
+
+    def changeAudio(self):
+        [pathToFile, x] = QFileDialog.getOpenFileName(self, "Open Audio") 
+        source_video_path = os.path.join(SAMPLE_INPUTS, self.pathToVideoFile)
+        source_audio_path = os.path.join(SAMPLE_INPUTS, pathToFile)
+        final_video_path = os.path.join(SAMPLE_OUTPUTS, self.pathToVideoFile)
+
+        video_clip = VideoFileClip(source_video_path)
+
+        new_audio_clip = AudioFileClip(source_audio_path)
+        new_audio_clip = new_audio_clip.subclip(0, video_clip.duration)
+
+        final_clip = video_clip.set_audio(new_audio_clip)
+        final_clip.write_videofile(
+            final_video_path, codec='libx264', audio_codec="aac"
+        )
+
     # EOD
 
     # Function to handle changes in the slider
