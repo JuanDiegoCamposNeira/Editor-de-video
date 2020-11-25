@@ -20,7 +20,6 @@ from PySide2.QtGui import *
 import cv2
 import numpy as np
 import os
-<<<<<<< HEAD
 import time
 # To manage the audio things
 from config import SAMPLE_INPUTS, SAMPLE_OUTPUTS
