@@ -130,3 +130,6 @@ dmypy.json
 
 # vscode configurations 
 .vscode/
+
+# Apple's records
+.DS_Store
