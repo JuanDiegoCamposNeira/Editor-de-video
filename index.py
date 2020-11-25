@@ -32,27 +32,61 @@ from PIL import Image
 """
 image = ""
 videoEdit = ""
-newFrame = ""
-combination = ""
-band = False
 cont2 = 0
+band = False
+posX = 0
+posY = 0
+
+# Function auxiliary for move image over video
+def overWriteImage(frame, img, position): 
+    result = np.zeros(frame.shape, np.uint8)
+    # Size of the frame 
+    frame_height, frame_width = frame.shape[0], frame.shape[1]
+    # Size of the image    
+    img_height, img_width = img.shape[0], img.shape[0] 
+    # Position to start the image
+    start_row, start_col = position
+    # Position to end the image
+    end_row, end_col = [start_row + img_height, start_col + img_width]
+    # Indices to traverse the image
+    img_i = img_j = 0
+    # Loop to traverse and override the image 
+    for i in range(0, frame_height): 
+        for j in range(0, frame_width): 
+            # If the indices are within the limits of the image, write the pixels of the image
+            within_rows = i >= start_row and i < end_row
+            within_cols = j >= start_col and j < end_col
+            if within_rows and within_cols : 
+                result[i][j] = img[img_i][img_j]
+                img_j += 1
+                if img_j == img_height:
+                    img_j = 0
+                    img_i += 1
+                # Eoi
+            # Eoi 
+            # Otherwise, write the pixels of the frame
+            else: 
+                result[i][j] = frame[i][j]
+            # Eoe
+        # Eof
+    # Eof
+    return result
+# EOD
 
 # Function auxiliary for mouse event
 def check(event,x,y,flags,param):
-    global image, videoEdit, band, cont2, newFrame, combination
-
-    bI, gI, rI = 0,0,0
+    global image, videoEdit, cont2, band, posX, posY
     
     #Conditionals of events for move the image and edit frame
     if event == cv2.EVENT_LBUTTONDOWN:
-        #Get current pixel color
-        bI, gI, rI = combination.item(y,x,0), combination.item(y,x,1), combination.item(y,x,2)
-        print("X: "+str(x)+" ,Y: "+str(y))
-        print("B"+str(bI)+" G"+str(gI)+" R"+str(rI))
+        posX = x
+        posY = y
+        #print("X: "+str(x)+" ,Y: "+str(y))
    
     if event == cv2.EVENT_LBUTTONUP:
-        print("X: "+str(x)+" ,Y: "+str(y))
-        print("B"+str(bI)+" G"+str(gI)+" R"+str(rI))
+        posX = x
+        posY = y
+        #print("X: "+str(x)+" ,Y: "+str(y))
 
     #Conditionals of events for scale the image
 
@@ -168,66 +202,46 @@ class MainWindow(QWidget):
     
     # Function to edit the video
     def editVideo(self): 
-        global image, videoEdit, band, cont2, newFrame, combination
+        global image, videoEdit, cont2, band, posX, posY
 
         #Auxiliary variables
-        pause = False
         cont2 += 1
-        cont = 0
-        directoryAct = os.getcwd()
-        directoryFrames = os.path.join(directoryAct, "Frames")
-        outputVideo = cv2.VideoWriter('Video Edit'+str(cont2)+'.mp4',cv2.VideoWriter_fourcc(*'mp4v'),20.0,(int(videoEdit.get(3)),int(videoEdit.get(4))))
+        outputVideo = cv2.VideoWriter('Video Edit'+str(cont2)+'.mp4',cv2.VideoWriter_fourcc(*'mp4v'),30,(int(videoEdit.get(3)),int(videoEdit.get(4))))
 
-        #This cycle is for play video frame to frame and be able to edit frame with an image
-        while(videoEdit.isOpened()):
-            #read a frame
+        # Cycle for play the video frame to frame
+        while videoEdit.isOpened():
             isFrame, frame = videoEdit.read()
-            
-            if isFrame:
-                cont += 1
-                newFrame = frame
-                #Show the current frame in a new window
-                cv2.imshow("Edit Video",newFrame)
-                #Action for pause the video and edit this frame
-                if cv2.waitKey(15) & 0xFF == ord('p'):
-                    #Change route for save the frames to edit
-                    os.chdir(directoryFrames)
-                    pause = True
-                    cv2.waitKey(0)
-                    #Save the current frame converting in an image 
-                    cv2.imwrite("frame"+str(cont)+".jpg",frame)
-                    newFrame = cv2.imread("frame"+str(cont)+".jpg")
-                    width = newFrame.shape[1]
-                    height = newFrame.shape[0]
-                    #After of open the frame to edit, open a new window (after play again the video)
-                    if band:
-                        #Note: For edit current frame with an image, before play again the video (in the window Edit Video), click in open image button and select the image
-                        imageScale = cv2.resize(image,(width,height),interpolation=cv2.INTER_CUBIC)
-                        combination = cv2.hconcat([newFrame,imageScale])
-                        cv2.imshow("Edit Frame",combination)
-                        cv2.setMouseCallback("Edit Frame",check)
-                    else:
-                        cv2.imshow("Edit Frame",newFrame)
-                    pause = False
-                #Action for stop the video and close the window
-                if cv2.waitKey(15) & 0xFF == ord('q'):
-                    band = False
-                    os.chdir(directoryAct)
-                    break
-                if not pause:
-                    outputVideo.write(newFrame)
-            else:
+
+            res = frame
+
+            # It's checked if have read a frame of video
+            if not(isFrame):
                 break
+            
+            # It's checked if open a image or not for mixed the frame with the image 
+            if not(band):
+                cv2.imshow("Edit Video",res)
+            else:
+                res = overWriteImage(frame,image,(posY,posX))
+                cv2.imshow("Edit Video",res)
+                cv2.setMouseCallback("Edit Video",check)
+
+            # It's checked if finished the video or was pressed the "Esc" key and close the edit video 
+            if cv2.waitKey(30) & 0xFF == 27:
+                break
+
+            outputVideo.write(res) #Write the frame for the new video edit
         
-        #Close the video and all windows
+        #Clear and close all
         videoEdit.release()
         outputVideo.release()
         cv2.destroyAllWindows()
-    # EOF
+
+    #EOF
 
     # Function to open an image file
     def openImage(self): 
-        global image, videoEdit, band, cont2, newFrame, combination
+        global image, videoEdit, cont2, band, posX, posY
        # Get the path to the video file
         [pathToFile, x] = QFileDialog.getOpenFileName(self, "Open image") 
         # Save the path to the video 
@@ -238,7 +252,7 @@ class MainWindow(QWidget):
 
     # Function to open a video file 
     def openVideo(self):
-        global image, videoEdit, band, cont2, newFrame, combination
+        global image, videoEdit, cont2, band, posX, posY
         # Get the path to the video file
         [pathToFile, x] = QFileDialog.getOpenFileName(self, "Open video") 
         # Save the path to the video 
