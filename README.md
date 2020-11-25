@@ -4,4 +4,7 @@ Permite al usuario colocar una imagen encima de un video e ir moviendola a lo la
 Librerías necesarias: 
 
 pip install PySide2
+
 pip install opencv-python
+
+pip install moviepy
