@@ -273,6 +273,7 @@ class MainWindow(QWidget):
     
 
     def changeAudio(self):
+        pos = self.mediaPlayer.position()
         [pathToFile, x] = QFileDialog.getOpenFileName(self, "Open Audio") 
         source_video_path = os.path.join(SAMPLE_INPUTS, self.pathToVideoFile)
         source_audio_path = os.path.join(SAMPLE_INPUTS, pathToFile)
@@ -289,6 +290,11 @@ class MainWindow(QWidget):
         final_clip.write_videofile(
             final_video_path, codec='libx264', audio_codec="aac"
         )
+        self.mediaPlayer.setMedia(QMediaContent(QUrl.fromLocalFile(new_file_path)))
+        self.onSliderChange(pos)
+        self.mediaPlayer.play()
+        videoEdit = cv2.VideoCapture(pathToFile)
+        
 
     # EOD
 

@@ -3,9 +3,9 @@ from moviepy.editor import *
 from moviepy.audio.fx.all import volumex
 from PIL import Image
 
-source_video_path = os.path.join(SAMPLE_INPUTS, "video.mp4")
-source_audio_path = os.path.join(SAMPLE_INPUTS, "audio.mp3")
-final_video_path = os.path.join(SAMPLE_INPUTS, "final.mp4")
+source_video_path = os.path.join(SAMPLE_INPUTS, "mapache-comiendo-uvas.mp4")
+source_audio_path = os.path.join(SAMPLE_INPUTS, "homero-comunista.wav")
+final_video_path = os.path.join(SAMPLE_INPUTS, "mapache-comiendo-uvas.mp4")
 
 video_clip = VideoFileClip(source_video_path)
 new_audio_clip = AudioFileClip(source_audio_path)
