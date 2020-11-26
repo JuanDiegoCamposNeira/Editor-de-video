@@ -137,6 +137,9 @@ class MainWindow(QWidget):
         self.applyAudioButton = QPushButton("Apply new audio")
         self.applyAudioButton.setEnabled(False)
         self.applyAudioButton.clicked.connect(self.applyAudio)
+        self.audioSlider = QSlider(Qt.Horizontal)
+        self.audioSlider.setRange(0,0) 
+        self.audioSlider.sliderMoved.connect(self.onSliderChange)
         # Button to save the edited video
         # Slider for the video 
         self.videoSlider = QSlider(Qt.Horizontal)
@@ -273,7 +276,6 @@ class MainWindow(QWidget):
         # Save the path to the video 
         self.pathToImageFile = pathToFile
         image = cv2.imread(pathToFile)
-        print(type(image))
         band = True
     # EOF
 
