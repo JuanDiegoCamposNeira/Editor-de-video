@@ -39,11 +39,11 @@ posY = 0
 
 # Function auxiliary for move image over video
 def overWriteImage(frame, img, position): 
-    result = np.zeros(frame.shape, np.uint8)
+    result = np.copy(frame)
     # Size of the frame 
-    frame_height, frame_width = frame.shape[0], frame.shape[1]
+    frame_height, frame_width = frame.shape[0],frame.shape[1]
     # Size of the image    
-    img_height, img_width = img.shape[0], img.shape[0] 
+    img_height, img_width = img.shape[0],img.shape[1]
     # Position to start the image
     start_row, start_col = position
     # Position to end the image
@@ -51,25 +51,22 @@ def overWriteImage(frame, img, position):
     # Indices to traverse the image
     img_i = img_j = 0
     # Loop to traverse and override the image 
-    for i in range(0, frame_height): 
-        for j in range(0, frame_width): 
-            # If the indices are within the limits of the image, write the pixels of the image
-            within_rows = i >= start_row and i < end_row
-            within_cols = j >= start_col and j < end_col
-            if within_rows and within_cols : 
+    if end_row < frame_height and end_col < frame_width and start_row < frame_height and start_col < frame_width:
+        for i in range(start_row, end_row): 
+            for j in range(start_col, end_col): 
+                # If the indices are within the limits of the image, write the pixels of the image
+                if img_i >= img_height:
+                    break
                 result[i][j] = img[img_i][img_j]
                 img_j += 1
-                if img_j == img_height:
+                if img_j == img_width:
                     img_j = 0
                     img_i += 1
-                # Eoi
-            # Eoi 
-            # Otherwise, write the pixels of the frame
-            else: 
-                result[i][j] = frame[i][j]
-            # Eoe
+                # Eoe
+            # Eof
+            if img_i >= img_height:
+                break
         # Eof
-    # Eof
     return result
 # EOD
 
@@ -81,16 +78,10 @@ def check(event,x,y,flags,param):
     if event == cv2.EVENT_LBUTTONDOWN:
         posX = x
         posY = y
-        #print("X: "+str(x)+" ,Y: "+str(y))
    
     if event == cv2.EVENT_LBUTTONUP:
         posX = x
         posY = y
-        #print("X: "+str(x)+" ,Y: "+str(y))
-
-    #Conditionals of events for scale the image
-
-    #Conditionals of events for rotate the image
 
 
 """
@@ -210,8 +201,12 @@ class MainWindow(QWidget):
         global image, videoEdit, cont2, band, posX, posY
 
         #Auxiliary variables
+        posX = 0
+        posY = 0
         cont2 += 1
-        outputVideo = cv2.VideoWriter('Video_Edit'+str(cont2)+'.mp4',cv2.VideoWriter_fourcc(*'mp4v'),30,(int(videoEdit.get(3)),int(videoEdit.get(4))))
+        width = int(videoEdit.get(3))
+        height = int(videoEdit.get(4))
+        outputVideo = cv2.VideoWriter('Video_Edit'+str(cont2)+'.mp4',cv2.VideoWriter_fourcc(*'mp4v'),30,(width,height))
 
         # Cycle for play the video frame to frame
         while videoEdit.isOpened():
@@ -227,7 +222,12 @@ class MainWindow(QWidget):
             if not(band):
                 cv2.imshow("Edit Video",res)
             else:
-                res = overWriteImage(frame,image,(posY,posX))
+                imageOut = image
+                if image.shape[1] > width:
+                    imageOut = cv2.resize(image,(width//2,image.shape[0]//2),interpolation=cv2.INTER_CUBIC)
+                if image.shape[0] > height:
+                    imageOut = cv2.resize(image,(image.shape[1]//2,height//2),interpolation=cv2.INTER_CUBIC)
+                res = overWriteImage(frame,imageOut,(posY,posX))
                 cv2.imshow("Edit Video",res)
                 cv2.setMouseCallback("Edit Video",check)
 
@@ -267,6 +267,7 @@ class MainWindow(QWidget):
         # Save the path to the video 
         self.pathToImageFile = pathToFile
         image = cv2.imread(pathToFile)
+        print(type(image))
         band = True
     # EOF
 

@@ -1,6 +1,13 @@
 import cv2 as cv
 import numpy as np
 
+imageOut = np.copy(image)
+                
+    if img.shape[0] > frame.shape[0]:
+        imageOut = cv2.resize(img,(frame.shape[0],img.shape[1]),interpolation=cv2.INTER_CUBIC)
+    elif img.shape[1] > frame.shape[1]:
+        imageOut = cv2.resize(img,(img.shape[0],frame.shape[1]),interpolation=cv2.INTER_CUBIC)
+
 def overWriteImage(frame, img, position): 
     result = np.zeros(frame.shape, np.uint8)
     # Size of the frame 
