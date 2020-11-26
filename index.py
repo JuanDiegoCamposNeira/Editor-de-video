@@ -106,6 +106,7 @@ class MainWindow(QWidget):
         # Path to the video and image files 
         self.pathToVideoFile = ""
         self.pathToImageFile = ""
+        self.pathToAudioFile = ""
 
         # Window configurations
         self.setWindowTitle("Proyecto Final Desarrollo Multimedial") # Title 
@@ -143,6 +144,9 @@ class MainWindow(QWidget):
         self.changeAudioButton = QPushButton("Change audio")
         self.changeAudioButton.setEnabled(False)
         self.changeAudioButton.clicked.connect(self.changeAudio)
+        self.applyAudioButton = QPushButton("Apply new audio")
+        self.applyAudioButton.setEnabled(False)
+        self.applyAudioButton.clicked.connect(self.applyAudio)
         # Button to save the edited video
         # Slider for the video 
         self.videoSlider = QSlider(Qt.Horizontal)
@@ -165,6 +169,7 @@ class MainWindow(QWidget):
         controlsLayout.addWidget(self.editVideoButton)
         controlsLayout.addWidget(self.videoSlider)
         controlsLayout.addWidget(self.changeAudioButton)
+        controlsLayout.addWidget(self.applyAudioButton)
 
         # Layout to display the video and the image
         mediaLayout = QHBoxLayout()
@@ -300,15 +305,26 @@ class MainWindow(QWidget):
         self.onSliderChange(0) 
         # PLay and pause the video to update the slider
     
-
+    #Function to change the audio
     def changeAudio(self):
         
         [pathToFile, x] = QFileDialog.getOpenFileName(self, "Open Audio") 
+        self.pathToAudioFile = pathToFile
+        self.applyAudioButton.setEnabled(True)
+        
+        
+        
+        #os.remove(self.pathToVideoFile)
+        #os.rename(new_file_path, self.pathToVideoFile)
+        
+        
+    #Function to apply the change
+    def applyAudio(self):
         source_video_path = os.path.join(SAMPLE_INPUTS, self.pathToVideoFile)
-        source_audio_path = os.path.join(SAMPLE_INPUTS, pathToFile)
-        new_file_path = self.pathToVideoFile[:self.pathToVideoFile.find('.')] +"edit" +self.pathToVideoFile[self.pathToVideoFile.find('.'):] 
+        source_audio_path = os.path.join(SAMPLE_INPUTS, self.pathToAudioFile)
+        new_file_path = self.pathToVideoFile[:self.pathToVideoFile.find('.')] +"edit" +self.pathToVideoFile[self.pathToVideoFile.find('.'):]
         final_video_path = os.path.join(SAMPLE_OUTPUTS, new_file_path)
-
+        self.pathToVideoFile = new_file_path
         video_clip = VideoFileClip(source_video_path)
 
         new_audio_clip = AudioFileClip(source_audio_path)
@@ -318,14 +334,11 @@ class MainWindow(QWidget):
             final_video_path, codec='libx264', audio_codec="aac"
         )
         pos = self.mediaPlayer.position()
-        PySide2.QtMultimedia.QMediaPlayer.setMedia(PySide2.QtMultimedia.QMediaContent, typing.Union[PySide2.QtCore.QIODevice, NoneType] == None)
-        os.remove(self.pathToVideoFile)
-        os.rename(new_file_path, self.pathToVideoFile)
         self.mediaPlayer.setMedia(QMediaContent(QUrl.fromLocalFile(self.pathToVideoFile)))
         self.onSliderChange(pos)
         self.mediaPlayer.play()
-        videoEdit = cv2.VideoCapture(pathToFile)
-        
+        videoEdit = cv2.VideoCapture(self.pathToVideoFile)
+        self.applyAudioButton.setEnabled(False)
 
     # EOD
 
