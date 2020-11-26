@@ -39,7 +39,6 @@ posY = 0
 
 # Function auxiliary for move image over video
 def overWriteImage(frame, img, position): 
-    result = np.copy(frame)
     # Size of the frame 
     frame_height, frame_width = frame.shape[0],frame.shape[1]
     # Size of the image    
@@ -57,7 +56,7 @@ def overWriteImage(frame, img, position):
                 # If the indices are within the limits of the image, write the pixels of the image
                 if img_i >= img_height:
                     break
-                result[i][j] = img[img_i][img_j]
+                frame[i][j] = img[img_i][img_j]
                 img_j += 1
                 if img_j == img_width:
                     img_j = 0
@@ -67,7 +66,7 @@ def overWriteImage(frame, img, position):
             if img_i >= img_height:
                 break
         # Eof
-    return result
+    return frame
 # EOD
 
 # Function auxiliary for mouse event
@@ -225,10 +224,16 @@ class MainWindow(QWidget):
                 imageOut = image
                 if image.shape[1] > width:
                     imageOut = cv2.resize(image,(width//2,image.shape[0]//2),interpolation=cv2.INTER_CUBIC)
+                # Eoi
                 if image.shape[0] > height:
                     imageOut = cv2.resize(image,(image.shape[1]//2,height//2),interpolation=cv2.INTER_CUBIC)
+                # Eoi
+
+                # Function to overwrite the image on top of video frame
                 res = overWriteImage(frame,imageOut,(posY,posX))
+                # Show the current video frame
                 cv2.imshow("Edit Video",res)
+                # Callback function to keep track of the mouse in the 'Edit video' window
                 cv2.setMouseCallback("Edit Video",check)
 
             # It's checked if finished the video or was pressed the "Esc" key and close the edit video 
