@@ -222,10 +222,10 @@ class MainWindow(QWidget):
                 cv2.imshow("Edit Video",res)
             else:
                 imageOut = image
-                if image.shape[1] > width:
+                if image.shape[1] >= width:
                     imageOut = cv2.resize(image,(width//2,image.shape[0]//2),interpolation=cv2.INTER_CUBIC)
                 # Eoi
-                if image.shape[0] > height:
+                if image.shape[0] >= height:
                     imageOut = cv2.resize(image,(image.shape[1]//2,height//2),interpolation=cv2.INTER_CUBIC)
                 # Eoi
 
@@ -238,6 +238,7 @@ class MainWindow(QWidget):
 
             # It's checked if finished the video or was pressed the "Esc" key and close the edit video 
             if cv2.waitKey(30) & 0xFF == 27:
+                band = False
                 break
 
             outputVideo.write(res) #Write the frame for the new video edit
