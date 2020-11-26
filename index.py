@@ -164,7 +164,7 @@ class MainWindow(QWidget):
         # Layout to display the video and the image
         mediaLayout = QHBoxLayout()
         mediaLayout.addWidget(videoPlayer)
-        mediaLayout.addWidget(self.imageLabel)
+        # mediaLayout.addWidget(self.imageLabel)
 
         # Layout to display the video, the controls and the labels vertically
         mainLayout = QVBoxLayout()
